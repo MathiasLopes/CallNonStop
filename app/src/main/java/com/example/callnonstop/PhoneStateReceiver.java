@@ -8,9 +8,9 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.KeyEvent;
 
-public class PhoneStateReceiver extends BroadcastReceiver {
+public class PhoneStateReceiver {// extends BroadcastReceiver {
 
-    public static String TAG="PhoneStateReceiver";
+    /*public static String TAG="PhoneStateReceiver";
     @Override
     public void onReceive(Context context, Intent intent) {
         if (intent.getAction().equals("android.intent.action.PHONE_STATE")) {
@@ -20,7 +20,7 @@ public class PhoneStateReceiver extends BroadcastReceiver {
             if (state.equals(TelephonyManager.EXTRA_STATE_IDLE)) {
                 Log.d(TAG,"PhoneStateReceiver**Idle");
             } else if (state.equals(TelephonyManager.EXTRA_STATE_RINGING)) {
-                // Incoming call
+                // Incoming call<uses-permission android:name="android.permission.SEND_SMS"/>
                 String incomingNumber =
                         intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
                 Log.d(TAG,"PhoneStateReceiver**Incoming call " + incomingNumber);
@@ -47,10 +47,10 @@ public class PhoneStateReceiver extends BroadcastReceiver {
 
     public boolean killCall(Context context) {
 
-        /*Intent buttonUp = new Intent(Intent.ACTION_MEDIA_BUTTON);
-        buttonUp.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_HEADSETHOOK));
-        context.sendOrderedBroadcast(buttonUp, "android.permission.CALL_PRIVILEGED");
-*/
+        //Intent buttonUp = new Intent(Intent.ACTION_MEDIA_BUTTON);
+        //buttonUp.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_HEADSETHOOK));
+        //context.sendOrderedBroadcast(buttonUp, "android.permission.CALL_PRIVILEGED");
+
         try {
             // Get the boring old TelephonyManager
             TelephonyManager telephonyManager =
@@ -79,6 +79,6 @@ public class PhoneStateReceiver extends BroadcastReceiver {
             return false;
         }
         return true;
-    }
+    }*/
 
 }
