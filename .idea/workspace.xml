@@ -18,10 +18,7 @@
       <change beforePath="$PROJECT_DIR$/.gradle/5.1.1/javaCompile/javaCompile.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/5.1.1/javaCompile/javaCompile.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/AndroidManifest.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/AndroidManifest.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/callnonstop/MainActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/callnonstop/MainActivity.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_main.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_main.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/content_main.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/content_main.xml" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/build/classes/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -52,8 +49,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/app/src/main/java/com/example/callnonstop/MainActivity.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="470">
-              <caret line="429" column="29" lean-forward="true" selection-start-line="429" selection-start-column="29" selection-end-line="429" selection-end-column="29" />
+            <state relative-caret-position="440">
+              <caret line="440" column="10" lean-forward="true" selection-start-line="440" selection-start-column="10" selection-end-line="440" selection-end-column="10" />
               <folding>
                 <element signature="e#4247#4524#0" expanded="true" />
                 <element signature="e#4523#4524#0" expanded="true" />
@@ -159,6 +156,8 @@
       <find>PhoneStateReceiver</find>
       <find>addLog</find>
       <find>makeCall</find>
+      <find>killcall</find>
+      <find>killCall</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -517,8 +516,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/app/src/main/java/com/example/callnonstop/MainActivity.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="470">
-          <caret line="429" column="29" lean-forward="true" selection-start-line="429" selection-start-column="29" selection-end-line="429" selection-end-column="29" />
+        <state relative-caret-position="440">
+          <caret line="440" column="10" lean-forward="true" selection-start-line="440" selection-start-column="10" selection-end-line="440" selection-end-column="10" />
           <folding>
             <element signature="e#4247#4524#0" expanded="true" />
             <element signature="e#4523#4524#0" expanded="true" />

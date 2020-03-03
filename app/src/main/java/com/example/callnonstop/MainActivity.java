@@ -212,6 +212,9 @@ public class MainActivity extends AppCompatActivity {
                     addLog("Incoming Number : " + incomingNumber);
                     addLog("NUM STATUT : " + state);
 
+                    if(incomingNumber != "")
+                        lastNumCalled = incomingNumber;
+
                     switch (state) {
                         case TelephonyManager.CALL_STATE_IDLE:
                             stateString = "Idle";
@@ -220,7 +223,6 @@ public class MainActivity extends AppCompatActivity {
                         case TelephonyManager.CALL_STATE_OFFHOOK:
                             stateString = "Off Hook";
                             addLog("STATUT : Off Hook");
-                            //killCall();
                             break;
                         case TelephonyManager.CALL_STATE_RINGING:
                             stateString = "Ringing";
@@ -245,29 +247,35 @@ public class MainActivity extends AppCompatActivity {
 
     public boolean killCall() {
 
-        try {
+        if(lastNumCalled.substring(lastNumCalled.length() - 9) == multilineNumText.getText().toString().substring(multilineNumText.getText().toString().length() - 9)) {
 
-            // Get the getITelephony() method
-            Class classTelephony = Class.forName(telephonyManager.getClass().getName());
-            Method methodGetITelephony = classTelephony.getDeclaredMethod("getITelephony");
+            try {
 
-            // Ignore that the method is supposed to be private
-            methodGetITelephony.setAccessible(true);
+                // Get the getITelephony() method
+                Class classTelephony = Class.forName(telephonyManager.getClass().getName());
+                Method methodGetITelephony = classTelephony.getDeclaredMethod("getITelephony");
 
-            // Invoke getITelephony() to get the ITelephony interface
-            Object telephonyInterface = methodGetITelephony.invoke(telephonyManager);
+                // Ignore that the method is supposed to be private
+                methodGetITelephony.setAccessible(true);
 
-            // Get the endCall method from ITelephony
-            Class telephonyInterfaceClass =
-                    Class.forName(telephonyInterface.getClass().getName());
-            Method methodEndCall = telephonyInterfaceClass.getDeclaredMethod("endCall");
+                // Invoke getITelephony() to get the ITelephony interface
+                Object telephonyInterface = methodGetITelephony.invoke(telephonyManager);
 
-            // Invoke endCall()
-            methodEndCall.invoke(telephonyInterface);
+                // Get the endCall method from ITelephony
+                Class telephonyInterfaceClass =
+                        Class.forName(telephonyInterface.getClass().getName());
+                Method methodEndCall = telephonyInterfaceClass.getDeclaredMethod("endCall");
 
-        } catch (Exception ex) { // Many things can go wrong with reflection calls
-            Log.d("LOG PHONE STATE","PhoneStateReceiver **" + ex.toString());
-            return false;
+                // Invoke endCall()
+                methodEndCall.invoke(telephonyInterface);
+
+            } catch (Exception ex) { // Many things can go wrong with reflection calls
+                Log.d("LOG PHONE STATE", "PhoneStateReceiver **" + ex.toString());
+                return false;
+            }
+
+        }else{
+            Toast.makeText(this, "Le dernier numéro enregistré est différent de celui que l'on souhaite raccroché", Toast.LENGTH_LONG).show();
         }
 
         return true;
@@ -422,8 +430,13 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onFinish() {
-                killCall();
-                Toast.makeText(MainActivity.this, "KILLCALL", Toast.LENGTH_SHORT).show();
+
+                try {
+                    killCall();
+                    Toast.makeText(MainActivity.this, "KILLCALL", Toast.LENGTH_SHORT).show();
+                }catch(Exception e){
+                    Toast.makeText(MainActivity.this, "Compteur : Appel non retrouvé", Toast.LENGTH_SHORT).show();
+                }
             }
         };
 
