@@ -19,13 +19,16 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.telephony.PhoneStateListener;
+import android.telephony.SmsManager;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -45,24 +48,42 @@ public class MainActivity extends AppCompatActivity {
 
     int REQUEST_CALL = 6477;
     int MY_PERMISSIONS_REQUEST_READ_PHONE_STATE = 101;
+    final public int PERMISSION_SEND_SMS = 282;
 
     ArrayList<String> listNum = new ArrayList<>();
-    EditText multilineNumText;
-    EditText multiLineLog;
 
+    EditText multilineNumText;
+
+    //pour appel
     Button btCall;
     Button btKillCall;
+
+    //Pour sms
+    EditText multilineTextSms;
+    Button btEnvoyerSms;
+
+
+    ListView listViewLog;
 
     TelephonyManager telephonyManager = null;
     PhoneStateListener listener;
 
+    String lastNumCalled = "";
+    int iLog = 0;
+
     Intent intentCall = null;
+
+    ArrayList<String> logArray = new ArrayList<>();
 
     protected void initElements(){
         multilineNumText = (EditText) findViewById(R.id.numMultiLineText);
-        multiLineLog = (EditText) findViewById(R.id.multiLineLog);
+        listViewLog = (ListView) findViewById(R.id.listViewLog);
         btCall = (Button) findViewById(R.id.btCall);
         btKillCall = (Button) findViewById(R.id.btKillCall);
+
+
+        multilineTextSms = (EditText) findViewById(R.id.texteSmsInput);
+        btEnvoyerSms = (Button) findViewById(R.id.btEnvoyerSms);
     }
 
     @Override
@@ -74,27 +95,6 @@ public class MainActivity extends AppCompatActivity {
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
-        FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                if(!checkPermissionForReadExtertalStorage()){
-                    try {
-                        requestPermissionForReadExtertalStorage();
-                    }catch(Exception e){
-                        Log.e("ERREUR MATHIAS", "PERMISSION : " + e.getMessage());
-                    }
-                }else{
-                    Intent intent = new Intent()
-                            .setType("*/*")
-                            .setAction(Intent.ACTION_GET_CONTENT);
-
-                    startActivityForResult(Intent.createChooser(intent, "Select a file"), 123);
-                }
-            }
-        });
 
 
         //On fait les demandes de permissions nécessaires à l'utilisation de l'application -----------------
@@ -146,11 +146,51 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        btEnvoyerSms.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                if(ContextCompat.checkSelfPermission(MainActivity.this,
+                        Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED){
+                    ActivityCompat.requestPermissions(MainActivity.this,
+                            new String[]{Manifest.permission.SEND_SMS}, PERMISSION_SEND_SMS);
+                }else{
+                    sendSms();
+                }
+
+            }
+        });
+
+    }
+
+    public void sendSms(){
+
+        String numeroTelephone = multilineNumText.getText().toString();
+        String texteToSend = multilineTextSms.getText().toString();
+
+        if(numeroTelephone != "" && texteToSend != "") {
+
+            try {
+                SmsManager smsManager = SmsManager.getDefault();
+                smsManager.sendTextMessage(numeroTelephone, null, texteToSend, null, null);
+                Toast.makeText(this, "Message envoyé", Toast.LENGTH_SHORT).show();
+            } catch (Exception e) {
+                Toast.makeText(this, "Pensez à saisir un le code du pays devant le numéro (France = +33)", Toast.LENGTH_SHORT).show();
+            }
+
+        }
     }
 
     public void addLog(String log){
 
-        multiLineLog.setText(multiLineLog.getText().toString() + log + "\n");
+        logArray.add(0, log);
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
+                android.R.layout.simple_list_item_1, logArray);
+
+        listViewLog.setAdapter(adapter);
+
+        //listViewLog.setText(listViewLog.getText().toString() + log + "\n");
 
     }
 
@@ -164,6 +204,7 @@ public class MainActivity extends AppCompatActivity {
 
             // Create a new PhoneStateListener
             listener = new PhoneStateListener() {
+
                 @Override
                 public void onCallStateChanged(int state, String incomingNumber) {
                     String stateString = "N/A";
@@ -187,7 +228,8 @@ public class MainActivity extends AppCompatActivity {
                             break;
                     }
 
-                    addLog("-----------------------------");
+                    addLog("Log " + iLog + " : --------------------------------------------------");
+                    iLog++;
 
                     Log.e("LISTEN CHANGED MATHIAS", String.format("\nonCallStateChanged: %s",
                             stateString));
@@ -351,7 +393,7 @@ public class MainActivity extends AppCompatActivity {
                 ActivityCompat.requestPermissions(this,
                         new String[]{Manifest.permission.READ_PHONE_STATE},
                         MY_PERMISSIONS_REQUEST_READ_PHONE_STATE);
-            }else {
+            } else {
 
                 launchListenerCall();
 
@@ -371,6 +413,21 @@ public class MainActivity extends AppCompatActivity {
 
         Intent intentCall = new Intent(Intent.ACTION_CALL, Uri.fromParts("tel", num, null));
         startActivity(intentCall);
+
+        MyCountDownTimer compteurCall = new MyCountDownTimer(5000, 5000) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+
+            }
+
+            @Override
+            public void onFinish() {
+                killCall();
+                Toast.makeText(MainActivity.this, "KILLCALL", Toast.LENGTH_SHORT).show();
+            }
+        };
+
+        compteurCall.start();
 
     }
 
