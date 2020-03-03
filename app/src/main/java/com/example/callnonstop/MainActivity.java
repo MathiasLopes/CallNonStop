@@ -3,7 +3,6 @@ package com.example.callnonstop;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -20,7 +19,6 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.telephony.PhoneStateListener;
-import android.telephony.SmsManager;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.View;
@@ -45,22 +43,28 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    final public int PERMISSION_SEND_SMS = 282;
+    int REQUEST_CALL = 6477;
+    int MY_PERMISSIONS_REQUEST_READ_PHONE_STATE = 101;
 
-    EditText telInput;
-    EditText multilineTextSms;
-    Button btEnvoyerSms;
+    ArrayList<String> listNum = new ArrayList<>();
+    EditText multilineNumText;
+    EditText multiLineLog;
+
+    Button btCall;
+    Button btKillCall;
 
     TelephonyManager telephonyManager = null;
     PhoneStateListener listener;
 
+    Intent intentCall = null;
+
     protected void initElements(){
-        multilineTextSms = (EditText) findViewById(R.id.texteSmsInput);
-        telInput = (EditText) findViewById(R.id.telInput);
-        btEnvoyerSms = (Button) findViewById(R.id.btEnvoyer);
+        multilineNumText = (EditText) findViewById(R.id.numMultiLineText);
+        multiLineLog = (EditText) findViewById(R.id.multiLineLog);
+        btCall = (Button) findViewById(R.id.btCall);
+        btKillCall = (Button) findViewById(R.id.btKillCall);
     }
 
-    @SuppressLint("RestrictedApi")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -72,68 +76,47 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setVisibility(View.INVISIBLE);
-
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
-                /*if(!checkPermissionForReadExtertalStorage()){
+                if(!checkPermissionForReadExtertalStorage()){
                     try {
                         requestPermissionForReadExtertalStorage();
                     }catch(Exception e){
                         Log.e("ERREUR MATHIAS", "PERMISSION : " + e.getMessage());
                     }
                 }else{
-                    Intent intent = new Intent()*/
-                            //.setType("*/*")
-                            /*.setAction(Intent.ACTION_GET_CONTENT);
+                    Intent intent = new Intent()
+                            .setType("*/*")
+                            .setAction(Intent.ACTION_GET_CONTENT);
 
                     startActivityForResult(Intent.createChooser(intent, "Select a file"), 123);
-                }*/
-            }
-        });
-
-        btEnvoyerSms.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View view){
-                if(ContextCompat.checkSelfPermission(MainActivity.this,
-                        Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED){
-                    ActivityCompat.requestPermissions(MainActivity.this,
-                            new String[]{Manifest.permission.SEND_SMS}, PERMISSION_SEND_SMS);
-                }else{
-                    sendSms();
                 }
             }
         });
 
+
         //On fait les demandes de permissions nécessaires à l'utilisation de l'application -----------------
 
         //on demande le droit pour lire un fichier texte
-        /*if(!checkPermissionForReadExtertalStorage()){
+        if(!checkPermissionForReadExtertalStorage()){
             try {
                 requestPermissionForReadExtertalStorage();
             }catch(Exception e){
                 Log.e("ERREUR PEMRISSION", "ExternalStorage : " + e.getMessage());
             }
-        }*/
-
-        //On demande le droit pour envoyer des sms
-        if(ContextCompat.checkSelfPermission(MainActivity.this,
-                Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED){
-            ActivityCompat.requestPermissions(MainActivity.this,
-                    new String[]{Manifest.permission.SEND_SMS}, PERMISSION_SEND_SMS);
         }
 
         //On demande le droit pour appeler
-        /*if(ContextCompat.checkSelfPermission(MainActivity.this,
+        if(ContextCompat.checkSelfPermission(MainActivity.this,
                 Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED){
             ActivityCompat.requestPermissions(MainActivity.this,
                     new String[]{Manifest.permission.CALL_PHONE}, 9999);
-        }*/
+        }
 
         //On demande les status des appels pour pouvoir raccrocher au bout d'un certain moment
-        /*if (ContextCompat.checkSelfPermission(this,
+        if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.READ_PHONE_STATE)
                 != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,
@@ -143,30 +126,35 @@ public class MainActivity extends AppCompatActivity {
 
             launchListenerCall();
 
-        }*/
+        }
 
         /* -------------------------------------------------------------------------------------------- */
 
-    }
-
-    public void sendSms(){
-
-        String numeroTelephone = telInput.getText().toString();
-        String texteToSend = multilineTextSms.getText().toString();
-
-        if(numeroTelephone != "" && texteToSend != "") {
-
-            try {
-                SmsManager smsManager = SmsManager.getDefault();
-                smsManager.sendTextMessage(numeroTelephone, null, texteToSend, null, null);
-            } catch (Exception e) {
-                Toast.makeText(this, "Pensez à saisir un le code du pays devant le numéro (France = +33)", Toast.LENGTH_SHORT).show();
+        btCall.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(multilineNumText.getText().toString().length() > 10) {
+                    makeCall(multilineNumText.getText().toString());
+                }
             }
+        });
 
-        }
+        btKillCall.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                killCall();
+            }
+        });
+
     }
 
-    /*public void launchListenerCall(){
+    public void addLog(String log){
+
+        multiLineLog.setText(multiLineLog.getText().toString() + log + "\n");
+
+    }
+
+    public void launchListenerCall(){
 
         Log.e("LOG MATHIAS", "ADD LISTENER");
 
@@ -179,18 +167,27 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onCallStateChanged(int state, String incomingNumber) {
                     String stateString = "N/A";
+
+                    addLog("Incoming Number : " + incomingNumber);
+                    addLog("NUM STATUT : " + state);
+
                     switch (state) {
                         case TelephonyManager.CALL_STATE_IDLE:
                             stateString = "Idle";
+                            addLog("STATUT : IDLE");
                             break;
                         case TelephonyManager.CALL_STATE_OFFHOOK:
                             stateString = "Off Hook";
+                            addLog("STATUT : Off Hook");
                             //killCall();
                             break;
                         case TelephonyManager.CALL_STATE_RINGING:
                             stateString = "Ringing";
+                            addLog("STATUT : Ringing");
                             break;
                     }
+
+                    addLog("-----------------------------");
 
                     Log.e("LISTEN CHANGED MATHIAS", String.format("\nonCallStateChanged: %s",
                             stateString));
@@ -199,11 +196,12 @@ public class MainActivity extends AppCompatActivity {
 
             // Register the listener with the telephony manager
             telephonyManager.listen(listener, PhoneStateListener.LISTEN_CALL_STATE);
+
         }
 
-    }*/
+    }
 
-    /*public boolean killCall() {
+    public boolean killCall() {
 
         try {
 
@@ -231,17 +229,17 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return true;
-    }*/
+    }
 
-    /*public boolean checkPermissionForReadExtertalStorage() {
+    public boolean checkPermissionForReadExtertalStorage() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             int result = getApplicationContext().checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE);
             return result == PackageManager.PERMISSION_GRANTED;
         }
         return false;
-    }*/
+    }
 
-    /*public void requestPermissionForReadExtertalStorage() throws Exception {
+    public void requestPermissionForReadExtertalStorage() throws Exception {
         try {
             ActivityCompat.requestPermissions((Activity) this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                     1);
@@ -249,16 +247,16 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
             throw e;
         }
-    }*/
+    }
 
-    /*@Override
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
-    }*/
+    }
 
-    /*@Override
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
@@ -271,9 +269,9 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
-    }*/
+    }
 
-    /*@Override
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
@@ -312,9 +310,9 @@ public class MainActivity extends AppCompatActivity {
             updateMultiLineTextNum();
 
         }
-    }*/
+    }
 
-    /*public void updateMultiLineTextNum(){
+    public void updateMultiLineTextNum(){
 
         multilineNumText.setText("");
 
@@ -331,9 +329,9 @@ public class MainActivity extends AppCompatActivity {
         }else{
             multilineNumText.setText("Aucun numéro n'a été trouvé");
         }
-    }*/
+    }
 
-    /*int indexNumCallIfNotPermissioned = -1;
+    int indexNumCallIfNotPermissioned = -1;
     public void recursiveCall(int indexNumToCall){
 
         indexNumCallIfNotPermissioned = indexNumToCall;
@@ -358,32 +356,39 @@ public class MainActivity extends AppCompatActivity {
                 launchListenerCall();
 
                 if (indexNumToCall != -1) {
-                    Intent intent = new Intent(Intent.ACTION_CALL, Uri.fromParts("tel", listNum.get(indexNumToCall), null));
-                    //startActivity(intent);
+                    Intent intentCall = new Intent(Intent.ACTION_CALL, Uri.fromParts("tel", listNum.get(indexNumToCall), null));
+                    startActivity(intentCall);
                 }
 
             }
 
         }
 
-    }*/
+    }
+
+    @SuppressLint("MissingPermission")
+    public void makeCall(String num){
+
+        Intent intentCall = new Intent(Intent.ACTION_CALL, Uri.fromParts("tel", num, null));
+        startActivity(intentCall);
+
+    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == PERMISSION_SEND_SMS) {
+        if (requestCode == REQUEST_CALL) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                sendSms();
-                //recursiveCall(indexNumCallIfNotPermissioned);
-            }/* else {
+                recursiveCall(indexNumCallIfNotPermissioned);
+            } else {
                 Toast.makeText(this, "PERMISSION REFUSEE POUR PASSER DES APPELS", Toast.LENGTH_SHORT).show();
-            }*/
-        }/*else if(requestCode == MY_PERMISSIONS_REQUEST_READ_PHONE_STATE){
+            }
+        }else if(requestCode == MY_PERMISSIONS_REQUEST_READ_PHONE_STATE){
 
             if(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
                 recursiveCall(indexNumCallIfNotPermissioned);
             }else{
                 Toast.makeText(this, "PERMISSION REFUSEE POUR L'ETAT DES APPELS", Toast.LENGTH_SHORT).show();
             }
-        }*/
+        }
     }
 }

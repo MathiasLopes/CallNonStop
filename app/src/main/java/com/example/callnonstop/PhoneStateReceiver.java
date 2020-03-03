@@ -1,26 +1,36 @@
 package com.example.callnonstop;
 
 import java.lang.reflect.Method;
+
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.widget.Toast;
 
-public class PhoneStateReceiver {// extends BroadcastReceiver {
+public class PhoneStateReceiver extends BroadcastReceiver {
 
-    /*public static String TAG="PhoneStateReceiver";
+    public static String TAG="PhoneStateReceiver";
     @Override
     public void onReceive(Context context, Intent intent) {
-        if (intent.getAction().equals("android.intent.action.PHONE_STATE")) {
+
+        //MainActivity mActivity = (MainActivity) context;
+
+        //mActivity.addLog("TEST");
+
+       /* if (intent.getAction().equals("android.intent.action.PHONE_STATE")) {
             String state = intent.getStringExtra(TelephonyManager.EXTRA_STATE);
             Log.d(TAG,"PhoneStateReceiver**Call State=" + state);
 
             if (state.equals(TelephonyManager.EXTRA_STATE_IDLE)) {
+
                 Log.d(TAG,"PhoneStateReceiver**Idle");
             } else if (state.equals(TelephonyManager.EXTRA_STATE_RINGING)) {
-                // Incoming call<uses-permission android:name="android.permission.SEND_SMS"/>
+
+                // Incoming call
                 String incomingNumber =
                         intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
                 Log.d(TAG,"PhoneStateReceiver**Incoming call " + incomingNumber);
@@ -42,15 +52,15 @@ public class PhoneStateReceiver {// extends BroadcastReceiver {
 
         } else {
             Log.d(TAG,"PhoneStateReceiver **unexpected intent.action=" + intent.getAction());
-        }
+        }*/
     }
 
     public boolean killCall(Context context) {
 
-        //Intent buttonUp = new Intent(Intent.ACTION_MEDIA_BUTTON);
-        //buttonUp.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_HEADSETHOOK));
-        //context.sendOrderedBroadcast(buttonUp, "android.permission.CALL_PRIVILEGED");
-
+        /*Intent buttonUp = new Intent(Intent.ACTION_MEDIA_BUTTON);
+        buttonUp.putExtra(Intent.EXTRA_KEY_EVENT, new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_HEADSETHOOK));
+        context.sendOrderedBroadcast(buttonUp, "android.permission.CALL_PRIVILEGED");
+*/
         try {
             // Get the boring old TelephonyManager
             TelephonyManager telephonyManager =
@@ -79,6 +89,6 @@ public class PhoneStateReceiver {// extends BroadcastReceiver {
             return false;
         }
         return true;
-    }*/
+    }
 
 }
