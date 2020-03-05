@@ -13,7 +13,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="48dp"
+        android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:ems="10"
         android:gravity="start|top"
@@ -22,15 +22,15 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/textView2" />
 
     <TextView
         android:id="@+id/textView2"
         android:layout_width="wrap_content"
         android:layout_height="16dp"
         android:layout_marginStart="40dp"
+        android:layout_marginTop="10dp"
         android:text="Saisir le numéro a appeler :"
-        app:layout_constraintBottom_toTopOf="@+id/numMultiLineText"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -57,7 +57,7 @@
     <EditText
         android:id="@+id/texteSmsInput"
         android:layout_width="0dp"
-        android:layout_height="200dp"
+        android:layout_height="100dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
@@ -65,8 +65,9 @@
         android:gravity="start|top"
         android:inputType="textMultiLine"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btCall" />
+        app:layout_constraintTop_toBottomOf="@+id/txtSecondeRaccrocher" />
 
     <Button
         android:id="@+id/btEnvoyerSms"
@@ -90,7 +91,42 @@
         android:layout_marginBottom="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btEnvoyerSms" />
+        app:layout_constraintTop_toBottomOf="@+id/btEnvoyerSms"
+        app:layout_constraintVertical_bias="1.0" />
+
+    <CheckBox
+        android:id="@+id/checkRaccrocheAuto"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="12dp"
+        android:text="Raccroche auto au bout de..."
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btCall" />
+
+    <EditText
+        android:id="@+id/txtSecondeRaccrocher"
+        android:layout_width="50dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:ems="10"
+        android:inputType="numberDecimal"
+        android:text="5"
+        android:textAlignment="center"
+        app:layout_constraintBottom_toBottomOf="@+id/checkRaccrocheAuto"
+        app:layout_constraintStart_toEndOf="@+id/checkRaccrocheAuto"
+        app:layout_constraintTop_toTopOf="@+id/checkRaccrocheAuto" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:text="secondes"
+        app:layout_constraintBottom_toBottomOf="@+id/txtSecondeRaccrocher"
+        app:layout_constraintStart_toEndOf="@+id/txtSecondeRaccrocher"
+        app:layout_constraintTop_toTopOf="@+id/txtSecondeRaccrocher" />
 
 </android.support.constraint.ConstraintLayout>

@@ -27,6 +27,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -57,6 +59,10 @@ public class MainActivity extends AppCompatActivity {
     //pour appel
     Button btCall;
     Button btKillCall;
+    CheckBox checkBoxRaccrocheAuto;
+    EditText txtSecondeRaccrocher;
+
+    boolean raccrocheAutoIsEnable = false;
 
     //Pour sms
     EditText multilineTextSms;
@@ -75,12 +81,16 @@ public class MainActivity extends AppCompatActivity {
 
     ArrayList<String> logArray = new ArrayList<>();
 
+    boolean appelIsEntrant = false;
+
     protected void initElements(){
         multilineNumText = (EditText) findViewById(R.id.numMultiLineText);
         listViewLog = (ListView) findViewById(R.id.listViewLog);
+
         btCall = (Button) findViewById(R.id.btCall);
         btKillCall = (Button) findViewById(R.id.btKillCall);
-
+        checkBoxRaccrocheAuto = (CheckBox) findViewById(R.id.checkRaccrocheAuto);
+        txtSecondeRaccrocher = (EditText) findViewById(R.id.txtSecondeRaccrocher);
 
         multilineTextSms = (EditText) findViewById(R.id.texteSmsInput);
         btEnvoyerSms = (Button) findViewById(R.id.btEnvoyerSms);
@@ -99,15 +109,6 @@ public class MainActivity extends AppCompatActivity {
 
         //On fait les demandes de permissions nécessaires à l'utilisation de l'application -----------------
 
-        //on demande le droit pour lire un fichier texte
-        if(!checkPermissionForReadExtertalStorage()){
-            try {
-                requestPermissionForReadExtertalStorage();
-            }catch(Exception e){
-                Log.e("ERREUR PEMRISSION", "ExternalStorage : " + e.getMessage());
-            }
-        }
-
         //On demande le droit pour appeler
         if(ContextCompat.checkSelfPermission(MainActivity.this,
                 Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED){
@@ -123,9 +124,7 @@ public class MainActivity extends AppCompatActivity {
                     new String[]{Manifest.permission.READ_PHONE_STATE},
                     MY_PERMISSIONS_REQUEST_READ_PHONE_STATE);
         }else{
-
             launchListenerCall();
-
         }
 
         /* -------------------------------------------------------------------------------------------- */
@@ -142,7 +141,7 @@ public class MainActivity extends AppCompatActivity {
         btKillCall.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                killCall();
+                killCall(true);
             }
         });
 
@@ -161,6 +160,15 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        checkBoxRaccrocheAuto.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener()
+        {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked)
+            {
+                raccrocheAutoIsEnable = isChecked;
+            }
+        });
+
     }
 
     public void sendSms(){
@@ -168,7 +176,7 @@ public class MainActivity extends AppCompatActivity {
         String numeroTelephone = multilineNumText.getText().toString();
         String texteToSend = multilineTextSms.getText().toString();
 
-        if(numeroTelephone != "" && texteToSend != "") {
+        if(!numeroTelephone.equals("") && !texteToSend.equals("")) {
 
             try {
                 SmsManager smsManager = SmsManager.getDefault();
@@ -212,21 +220,37 @@ public class MainActivity extends AppCompatActivity {
                     addLog("Incoming Number : " + incomingNumber);
                     addLog("NUM STATUT : " + state);
 
-                    if(incomingNumber != "")
+                    if(!incomingNumber.equals("")) {
                         lastNumCalled = incomingNumber;
+                    }
+
+                    if(lastNumCalled != null && !lastNumCalled.equals("")) {
+                        addLog("JE SUIS LE NUMERO ENREGISTREE : " + lastNumCalled);
+                    }else{
+                        addLog("JE N'AI PAS ENREGISTREE LE NUMERO CAR IL EST VIDE");
+                    }
 
                     switch (state) {
                         case TelephonyManager.CALL_STATE_IDLE:
                             stateString = "Idle";
                             addLog("STATUT : IDLE");
+                            appelIsEntrant = false;
                             break;
                         case TelephonyManager.CALL_STATE_OFFHOOK:
                             stateString = "Off Hook";
                             addLog("STATUT : Off Hook");
+
+                            if(appelIsEntrant){
+                                addLog("APPEL ENTRANT");
+                            }else{
+                                addLog("APPEL SORTANT");
+                            }
+
                             break;
                         case TelephonyManager.CALL_STATE_RINGING:
                             stateString = "Ringing";
                             addLog("STATUT : Ringing");
+                            appelIsEntrant = true;
                             break;
                     }
 
@@ -245,59 +269,57 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public boolean killCall() {
+    public boolean killCall(boolean isGeneric) {
 
-        if(lastNumCalled.substring(lastNumCalled.length() - 9) == multilineNumText.getText().toString().substring(multilineNumText.getText().toString().length() - 9)) {
+        if((lastNumCalled.length() > 9 && multilineNumText.getText().toString().length() > 9) || isGeneric) {
 
-            try {
+            if ((lastNumCalled.substring(lastNumCalled.length() - 9).equals(multilineNumText.getText().toString().substring(multilineNumText.getText().toString().length() - 9))) || isGeneric) {
 
-                // Get the getITelephony() method
-                Class classTelephony = Class.forName(telephonyManager.getClass().getName());
-                Method methodGetITelephony = classTelephony.getDeclaredMethod("getITelephony");
+                try {
 
-                // Ignore that the method is supposed to be private
-                methodGetITelephony.setAccessible(true);
+                    // Get the getITelephony() method
+                    Class classTelephony = Class.forName(telephonyManager.getClass().getName());
+                    Method methodGetITelephony = classTelephony.getDeclaredMethod("getITelephony");
 
-                // Invoke getITelephony() to get the ITelephony interface
-                Object telephonyInterface = methodGetITelephony.invoke(telephonyManager);
+                    // Ignore that the method is supposed to be private
+                    methodGetITelephony.setAccessible(true);
 
-                // Get the endCall method from ITelephony
-                Class telephonyInterfaceClass =
-                        Class.forName(telephonyInterface.getClass().getName());
-                Method methodEndCall = telephonyInterfaceClass.getDeclaredMethod("endCall");
+                    // Invoke getITelephony() to get the ITelephony interface
+                    Object telephonyInterface = methodGetITelephony.invoke(telephonyManager);
 
-                // Invoke endCall()
-                methodEndCall.invoke(telephonyInterface);
+                    // Get the endCall method from ITelephony
+                    Class telephonyInterfaceClass =
+                            Class.forName(telephonyInterface.getClass().getName());
+                    Method methodEndCall = telephonyInterfaceClass.getDeclaredMethod("endCall");
 
-            } catch (Exception ex) { // Many things can go wrong with reflection calls
-                Log.d("LOG PHONE STATE", "PhoneStateReceiver **" + ex.toString());
-                return false;
+                    // Invoke endCall()
+                    methodEndCall.invoke(telephonyInterface);
+
+                } catch (Exception ex) { // Many things can go wrong with reflection calls
+                    Log.d("LOG PHONE STATE", "PhoneStateReceiver **" + ex.toString());
+                    return false;
+                }
+
+            } else {
+                addLog("NUMERO NON IDENTIQUE :");
+                addLog("NUM 1 (sans substring): " + lastNumCalled);
+                addLog("NUM 2 (sans substring): " + multilineNumText.getText().toString());
+                addLog("NUM 1 (avec substring): " + lastNumCalled.substring(lastNumCalled.length() - 9));
+                addLog("NUM 2 (avec substring): " + multilineNumText.getText().toString().substring(lastNumCalled.length() - 9));
+                Toast.makeText(this, "NUMERO NON IDENTIQUE : NUM 1 :" + lastNumCalled.substring(lastNumCalled.length() - 9) + " - NUM 2 : " + multilineNumText.getText().toString().substring(multilineNumText.getText().toString().length() - 9) + ";", Toast.LENGTH_LONG).show();
             }
 
         }else{
-            Toast.makeText(this, "Le dernier numéro enregistré est différent de celui que l'on souhaite raccroché", Toast.LENGTH_LONG).show();
+            addLog("NUMERO NON CONFORME (TAILLE INFERIEUR A 9 CARACTERES)");
+            addLog("NUM 1 : " + lastNumCalled);
+            addLog("NUM 2 : " + multilineNumText.getText().toString());
+
+            Toast.makeText(this, "NUMERO NON CONFORME (TAILLE INFERIEUR A 9 CARACTERES)", Toast.LENGTH_SHORT).show();
         }
 
         return true;
     }
 
-    public boolean checkPermissionForReadExtertalStorage() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            int result = getApplicationContext().checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE);
-            return result == PackageManager.PERMISSION_GRANTED;
-        }
-        return false;
-    }
-
-    public void requestPermissionForReadExtertalStorage() throws Exception {
-        try {
-            ActivityCompat.requestPermissions((Activity) this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                    1);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw e;
-        }
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -422,25 +444,47 @@ public class MainActivity extends AppCompatActivity {
         Intent intentCall = new Intent(Intent.ACTION_CALL, Uri.fromParts("tel", num, null));
         startActivity(intentCall);
 
-        MyCountDownTimer compteurCall = new MyCountDownTimer(5000, 5000) {
-            @Override
-            public void onTick(long millisUntilFinished) {
+        if(raccrocheAutoIsEnable) {
+
+            boolean timeParsed = false;
+            int timeToKillcall = 0;
+
+            try {
+
+                timeToKillcall = Integer.parseInt(txtSecondeRaccrocher.getText().toString());
+                timeParsed = true;
+
+            }catch(Exception e){
 
             }
 
-            @Override
-            public void onFinish() {
+            if(timeParsed) {
 
-                try {
-                    killCall();
-                    Toast.makeText(MainActivity.this, "KILLCALL", Toast.LENGTH_SHORT).show();
-                }catch(Exception e){
-                    Toast.makeText(MainActivity.this, "Compteur : Appel non retrouvé", Toast.LENGTH_SHORT).show();
-                }
+                MyCountDownTimer compteurCall = new MyCountDownTimer(timeToKillcall*1000, timeToKillcall*1000) {
+                    @Override
+                    public void onTick(long millisUntilFinished) {
+
+                    }
+
+                    @Override
+                    public void onFinish() {
+
+                        try {
+                            killCall(false);
+                            Toast.makeText(MainActivity.this, "KILLCALL", Toast.LENGTH_SHORT).show();
+                        } catch (Exception e) {
+                            Toast.makeText(MainActivity.this, "Compteur : Appel non retrouvé", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                };
+
+                compteurCall.start();
+
+            }else{
+                addLog("Erreur lors de la récupération du timing pour raccrocher, veuillez saisir le temps en seconde(s) avec uniquement des chiffres");
             }
-        };
 
-        compteurCall.start();
+        }
 
     }
 
@@ -448,14 +492,14 @@ public class MainActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == REQUEST_CALL) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                recursiveCall(indexNumCallIfNotPermissioned);
+
             } else {
                 Toast.makeText(this, "PERMISSION REFUSEE POUR PASSER DES APPELS", Toast.LENGTH_SHORT).show();
             }
         }else if(requestCode == MY_PERMISSIONS_REQUEST_READ_PHONE_STATE){
 
             if(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
-                recursiveCall(indexNumCallIfNotPermissioned);
+                launchListenerCall();
             }else{
                 Toast.makeText(this, "PERMISSION REFUSEE POUR L'ETAT DES APPELS", Toast.LENGTH_SHORT).show();
             }
